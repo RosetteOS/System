@@ -83,7 +83,7 @@ struct sdhci_ingenic {
 	int             ext_cd_gpio;
 	unsigned long           clk_rates;
 	unsigned long           flags;
-	/* OpenKE (2026-07-22, FIRMWARE.md sec 51): WL_REG_ON driven directly,
+	/* RosetteOS (2026-07-22, FIRMWARE.md sec 51): WL_REG_ON driven directly,
 	 * bypassing mmc_pwrseq_simple - see ingenic_mmc_manual_detect() and
 	 * the "wlan-reg-on-gpios" devicetree property. NULL/absent on msc0
 	 * and msc2, which don't have this property. */
@@ -92,7 +92,7 @@ struct sdhci_ingenic {
 
 int ingenic_sdio_wlan_init(struct device *dev, int index);
 int ingenic_sdio_wlan_deinit(struct device *dev);
-/* OpenKE (2026-07-22, FIRMWARE.md sec 52): sec 47 renamed these to
+/* RosetteOS (2026-07-22, FIRMWARE.md sec 52): sec 47 renamed these to
  * sdhci_ingenic_mmc_clk_ctrl/sdhci_ingenic_mmc_manual_detect to dodge a real
  * link collision with ingenic_mmc.c's own functions of these names, back when
  * msc1 used ingenic_mmc.c and both drivers built into the same vmlinux.

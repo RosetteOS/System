@@ -1,30 +1,24 @@
-# NebulaOS Kernel
+# NebulaOS Kernel SDK
 
-The Linux 6.6 kernel SDK [NebulaOS](https://github.com/coreflake1/NebulaOS) runs on the Creality
-Ender-3 V3 KE (Ingenic X2000).
+This repository contains the Linux 6.6 and Buildroot SDK used by
+[NebulaOS](https://github.com/coreflake1/NebulaOS) on the Creality Ender-3 V3 KE
+(Ingenic X2000).
 
-Yes, the main branch here is called `openke`. That's an old branch name we kept for history — this
-repo is a NebulaOS component and isn't part of the separate
-[OpenKE](https://github.com/coreflake1/guppyscreen) project. It just predates this repo's rename
-and never got renamed for branding reasons.
-
-| Branch | What's there |
-|---|---|
-| `openke` | The real NebulaOS lineage. Every kernel change NebulaOS made — NS2009 touch, the display panel driver, the BT H5 vendor extension, a watchdog fix, DTS wiring, some Kconfig compression selects — lives here as an actual commit, not a patch file applied at build time. |
-| `main` | The unmodified upstream SDK ([`Llixuma/ingenic-linux-kernel6.6-x2000-v1.0-20250221`](https://github.com/Llixuma/ingenic-linux-kernel6.6-x2000-v1.0-20250221)) — this fork's starting point, untouched by any NebulaOS work. |
+The [RosetteOS firmware repository](https://github.com/RosetteOS/RosetteOS) uses this repository as a
+build input. It fetches the exact commit pinned in `RosetteOS/manifests/dependencies.conf`; the pin,
+not a moving branch, defines the kernel and Buildroot revision used for a firmware build.
 
 ## You probably don't want to build this repo directly
 
-If you want the complete NebulaOS image, start at
-[`NebulaOS-firmware`](https://github.com/coreflake1/NebulaOS-firmware) instead. It pins an exact
-commit of this repo's `openke` branch, fetches just the kernel source it needs (a sparse checkout —
-the full SDK here is ~684MB), and applies 8 build-time kernel variants on top before compiling.
+For a complete RosetteOS image, follow the build and installation instructions in the
+[RosetteOS firmware repository](https://github.com/RosetteOS/RosetteOS). Its build fetches the pinned
+System commit and applies the qualified kernel variants before compiling.
 
 ## The 8 build-time variants
 
-These live in `NebulaOS-firmware`, not here — this repo only holds the base kernel source they
-patch at build time. Applied in order by `scripts/build/apply-qualified-baseline.sh` (though the
-order doesn't actually matter — each one touches its own files):
+These live in RosetteOS, not here — this repository holds the base kernel source they patch at build
+time. They are applied by
+[`scripts/build/apply-qualified-baseline.sh`](https://github.com/RosetteOS/RosetteOS/blob/main/scripts/build/apply-qualified-baseline.sh):
 
 1. PREEMPT_RT
 2. WiFi SDIO IRQ priority
@@ -37,12 +31,10 @@ order doesn't actually matter — each one touches its own files):
 
 ## If you're setting up a device
 
-The install/update/recovery docs all live in `NebulaOS-firmware`, not here — this repo is just
-kernel source:
+The install, update, and recovery docs live in RosetteOS:
 
-- [`NebulaOS-firmware` wiki](https://github.com/coreflake1/NebulaOS-firmware/wiki)
-- [Build From Source](https://github.com/coreflake1/NebulaOS-firmware/blob/main/docs/BUILD_FROM_SOURCE.md) — how this repo's `openke` branch actually gets pulled in and patched
-- [A/B Slot Model](https://github.com/coreflake1/NebulaOS-firmware/blob/main/docs/A_B_SLOT_MODEL.md)
+- [Build From Source](https://github.com/RosetteOS/RosetteOS/blob/main/docs/BUILD_FROM_SOURCE.md)
+- [A/B Slot Model](https://github.com/RosetteOS/RosetteOS/blob/main/docs/A_B_SLOT_MODEL.md)
 
 ## License
 

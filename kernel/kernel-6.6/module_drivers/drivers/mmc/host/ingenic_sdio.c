@@ -145,7 +145,7 @@ EXPORT_SYMBOL(ingenic_sdio_wlan_init);
 int ingenic_bcmdhd_wlan_power_onoff(int flag)
 {
 	if (flag) {
-		/* OpenKE (2026-07-22, FIRMWARE.md sec 50): WIFI_SEQ event markers -
+		/* RosetteOS (2026-07-22, FIRMWARE.md sec 50): WIFI_SEQ event markers -
 		 * cheap, always-on (this whole path only runs on manual insert/
 		 * remove, not per-command), matching the event timeline this
 		 * project's own investigation notes track stock against. */
@@ -172,7 +172,7 @@ int ingenic_bcmdhd_wlan_power_onoff(int flag)
 }
 EXPORT_SYMBOL(ingenic_bcmdhd_wlan_power_onoff);
 
-/* OpenKE (2026-07-22, FIRMWARE.md sec 46): real, live dmesg from stock (this exact
+/* RosetteOS (2026-07-22, FIRMWARE.md sec 46): real, live dmesg from stock (this exact
  * board, this exact chip) shows the SDIO card is NEVER found by a generic eager
  * rescan at msc1-probe time at all - stock's own soc_msc.ko has msc1_rst=-1,
  * msc1_pwr=-1 (no power/reset gpio of its own whatsoever). ALL real power
@@ -195,17 +195,17 @@ EXPORT_SYMBOL(ingenic_bcmdhd_wlan_power_onoff);
  * after msc1's own probe (and ingenic_sdio_wlan_init(), which sets
  * wifi_data.sdio_index) has already completed, so our existing pwrseq gpios
  * should already be settled by the time this fires. */
-static int __init openke_wifi_manual_insert(void)
+static int __init rosetteos_wifi_manual_insert(void)
 {
-	printk("WIFI_SEQ: openke_wifi_manual_insert entry\n");
+	printk("WIFI_SEQ: rosetteos_wifi_manual_insert entry\n");
 	if (wifi_data.sdio_index != 1) {
-		printk("openke_wifi_manual_insert: unexpected sdio_index %d, skipping\n",
+		printk("rosetteos_wifi_manual_insert: unexpected sdio_index %d, skipping\n",
 		       wifi_data.sdio_index);
 		return 0;
 	}
-	printk("openke_wifi_manual_insert: triggering manual SDIO insert on mmc%d\n",
+	printk("rosetteos_wifi_manual_insert: triggering manual SDIO insert on mmc%d\n",
 	       wifi_data.sdio_index);
 	ingenic_bcmdhd_wlan_power_onoff(MANUALLY_INSERT);
 	return 0;
 }
-late_initcall(openke_wifi_manual_insert);
+late_initcall(rosetteos_wifi_manual_insert);

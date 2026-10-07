@@ -1,5 +1,5 @@
 /*
- * OpenKE ke-mainline-klipper - best-effort panel driver for the real Ender 3 V3
+ * RosetteOS ke-mainline-klipper - best-effort panel driver for the real Ender 3 V3
  * KE Nebula Pad's 480x272 parallel-RGB TFT panel.
  *
  * The real device runs this panel via Creality's own closed `lcd_general_480x272.ko`
@@ -135,7 +135,7 @@ static struct fb_videomode panel_modes[] = {
 	},
 };
 
-static struct tft_config openke_general_480x272_cfg = {
+static struct tft_config rosetteos_general_480x272_cfg = {
 	.pix_clk_inv = 0,
 	.de_dl = 0,
 	.sync_dl = 0,
@@ -160,7 +160,7 @@ static struct tft_config openke_general_480x272_cfg = {
 };
 
 struct lcd_panel lcd_panel = {
-	.name = "openke_general_480x272",
+	.name = "rosetteos_general_480x272",
 	.num_modes = ARRAY_SIZE(panel_modes),
 	.modes = panel_modes,
 	.bpp = 32,
@@ -168,7 +168,7 @@ struct lcd_panel lcd_panel = {
 	.height = 54,
 
 	.lcd_type = LCD_TYPE_TFT,
-	.tft_config = &openke_general_480x272_cfg,
+	.tft_config = &rosetteos_general_480x272_cfg,
 
 	.dither_enable = 0,
 	.ops = &panel_ops,
@@ -224,7 +224,7 @@ static int panel_remove(struct platform_device *pdev)
 }
 
 static const struct of_device_id panel_of_match[] = {
-	{ .compatible = "openke,general-480x272", },
+	{ .compatible = "rosetteos,general-480x272", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, panel_of_match);
@@ -233,11 +233,11 @@ static struct platform_driver panel_driver = {
 	.probe  = panel_probe,
 	.remove = panel_remove,
 	.driver = {
-		.name = "openke_general_480x272",
+		.name = "rosetteos_general_480x272",
 		.of_match_table = panel_of_match,
 	},
 };
 
 module_platform_driver(panel_driver);
 MODULE_LICENSE("GPL");
-MODULE_DESCRIPTION("OpenKE best-effort panel driver for the Ender 3 V3 KE Nebula Pad's 480x272 panel");
+MODULE_DESCRIPTION("RosetteOS best-effort panel driver for the Ender 3 V3 KE Nebula Pad's 480x272 panel");

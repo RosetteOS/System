@@ -1090,7 +1090,7 @@ static const struct h5_device_data h5_data_rtl8723bs = {
 
 #ifdef CONFIG_BT_HCIUART_BCM_H5
 /*
- * OpenKE addition (see ~/Documents/ke-mainline-klipper/FIRMWARE.md): a Broadcom
+ * RosetteOS addition (see ~/Documents/ke-mainline-klipper/FIRMWARE.md): a Broadcom
  * h5_vnd, mirroring the rtl_vnd block above. Exists because CONFIG_BT_HCIUART_BCM
  * (hci_bcm.c) only works over H4 (it selects BT_HCIUART_H4), but this board's real
  * UART wiring (confirmed via the vendor board DTS: halley5_v30.dts selects the
@@ -1177,7 +1177,7 @@ static const struct of_device_id rtl_bluetooth_of_match[] = {
 	  .data = (const void *)&h5_data_rtl8723bs },
 #endif
 #ifdef CONFIG_BT_HCIUART_BCM_H5
-	{ .compatible = "openke,bcm4343x-bt",
+	{ .compatible = "rosetteos,bcm4343x-bt",
 	  .data = (const void *)&h5_data_bcm4343x },
 #endif
 	{ },

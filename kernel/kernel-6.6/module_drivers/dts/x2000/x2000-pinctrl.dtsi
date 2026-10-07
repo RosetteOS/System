@@ -34,7 +34,7 @@
 
 	uart4_pin: uart4-pin {
 		uart4_pa: uart4-pa {
-			/* OpenKE (2026-07-22, FIRMWARE.md sec 44): was <&gpa 0 3> (pins 0-3, ALL
+			/* RosetteOS (2026-07-22, FIRMWARE.md sec 44): was <&gpa 0 3> (pins 0-3, ALL
 			 * FOUR muxed to UART4 as one atomic ingenic,pinmux group -
 			 * pinctrl-ingenic.c's pin_bitmap(from,to) is an inclusive range, so this
 			 * silently claimed PA0/PA1 too, even though UART4 only uses PA2 (RX) and

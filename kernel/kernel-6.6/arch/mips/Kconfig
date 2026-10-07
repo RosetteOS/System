@@ -480,7 +480,7 @@ config MACH_XBURST2
     select SYS_SUPPORTS_HIGHMEM
     select XBURST2_CPU_SCACHE
     select HAVE_KERNEL_GZIP
-    # OpenKE (2026-07-20, FIRMWARE.md sec 29): HAVE_KERNEL_XZ is only ever
+    # RosetteOS (2026-07-20, FIRMWARE.md sec 29): HAVE_KERNEL_XZ is only ever
     # selected by arch/s390 elsewhere in this tree - without it here,
     # CONFIG_KERNEL_XZ's own "depends on HAVE_KERNEL_XZ" can never be
     # satisfied, so a Buildroot config fragment forcing CONFIG_KERNEL_XZ=y
@@ -492,7 +492,7 @@ config MACH_XBURST2
     # the fragment's CONFIG_KERNEL_XZ=y take effect and fall through to an
     # uncompressed uImage.bin, matching the real stock kernel/kernel2 images.
     select HAVE_KERNEL_XZ
-    # OpenKE (2026-07-20, FIRMWARE.md sec 30): the XZ-as-uncompressed trick
+    # RosetteOS (2026-07-20, FIRMWARE.md sec 30): the XZ-as-uncompressed trick
     # above solved the "SPL can't gunzip" problem but exposed a second, real
     # one - our real uncompressed kernel is ~14.5MB, well over the kernel2
     # partition's fixed 8MB capacity (confirmed: flash-spare-slot.sh's own

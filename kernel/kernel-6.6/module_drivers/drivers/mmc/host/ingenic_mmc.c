@@ -127,7 +127,7 @@ static void ingenic_mmc_dump_reg(struct ingenic_mmc_host *host)
 #endif
 
 /*
- * OpenKE (2026-07-22, FIRMWARE.md sec 49/50): real X2000 CPM register offsets
+ * RosetteOS (2026-07-22, FIRMWARE.md sec 49/50): real X2000 CPM register offsets
  * from arch/mips/xburst2/soc-x2000/include/soc/cpm.h (CPM_IOBASE=0x10000000,
  * CPM_MSC0CDR=0x68, CPM_MSC1CDR=0xa4, CPM_CLKGR=0x20, CPM_MPDCR=0xf8) and bit
  * positions from module_drivers/drivers/clk/ingenic-v2/clk-x2000.c's clock
@@ -251,7 +251,7 @@ static inline void ingenic_mmc_reset(struct ingenic_mmc_host *host)
 }
 
 /*
- * OpenKE (2026-07-22, FIRMWARE.md sec 51): STAT_CLK_EN (bit 8) is the MSC
+ * RosetteOS (2026-07-22, FIRMWARE.md sec 51): STAT_CLK_EN (bit 8) is the MSC
  * controller's own internal SD/MMC clock-running indicator, distinct from
  * the external clk_cgu/clk_gate Linux clock-framework state already proven
  * valid (MSC1-CLK-DIAG) and distinct from the CPM power-domain/gate bits
@@ -907,7 +907,7 @@ static void ingenic_mmc_command_start(struct ingenic_mmc_host *host, struct mmc_
 	unsigned long imsk;
 
 	/*
-	 * OpenKE (2026-07-22, FIRMWARE.md sec 52): the STAT_CLK_EN pre-command
+	 * RosetteOS (2026-07-22, FIRMWARE.md sec 52): the STAT_CLK_EN pre-command
 	 * gate (sec 51) is REMOVED - real, live register reads off the working
 	 * stock reference disproved the assumption behind it. A fully
 	 * associated, actively-transferring stock system reads STAT=0x00007080
@@ -1022,7 +1022,7 @@ static void ingenic_mmc_request(struct mmc_host *mmc, struct mmc_request *mrq)
 }
 
 /*
- * OpenKE (2026-07-22, FIRMWARE.md sec 49): stock's ladder let this reschedule
+ * RosetteOS (2026-07-22, FIRMWARE.md sec 49): stock's ladder let this reschedule
  * up to 20 times (real 60s per request) before ever calling mmc_request_done()
  * - harmless on working hardware, but during msc1 diagnostic passes (STAT
  * stuck at 0, every CMD0/CMD8/CMD5/CMD55 attempt times out) each request now
@@ -1790,7 +1790,7 @@ static int mmc_ingenic_probe(struct platform_device *pdev)
 	host->index = pdev->id;
 	priv->get_clk_name(host->index, clk_cgu_name, clk_gate_name);
 	/*
-	 * OpenKE (2026-07-22, FIRMWARE.md sec 50): "if (!host->clk_cgu)" below
+	 * RosetteOS (2026-07-22, FIRMWARE.md sec 50): "if (!host->clk_cgu)" below
 	 * (and the clk_gate copy) is a real bug present identically in stock's
 	 * own 4.4.94 source (vendor/x2000_kernel/drivers/mmc/host/ingenic_mmc.c
 	 * line 1616/1622) - devm_clk_get() returns ERR_PTR() on failure, never
@@ -1889,7 +1889,7 @@ static int mmc_ingenic_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, host);
 
 	dev_info(host->dev, "register success!\n");
-	/* OpenKE (2026-07-22, FIRMWARE.md sec 50): baseline CPM snapshot right
+	/* RosetteOS (2026-07-22, FIRMWARE.md sec 50): baseline CPM snapshot right
 	 * after this instance's own reset/IRQ-request completed in
 	 * ingenic_mmc_msc_init() above - fires once per instance (msc0, msc1),
 	 * giving a same-lifecycle-point comparison between the two before any
@@ -1919,7 +1919,7 @@ static int __exit mmc_ingenic_remove(struct platform_device *pdev)
 {
 	struct ingenic_mmc_host *host = platform_get_drvdata(pdev);
 
-	/* OpenKE (2026-07-22, FIRMWARE.md sec 49): neither timer was ever
+	/* RosetteOS (2026-07-22, FIRMWARE.md sec 49): neither timer was ever
 	 * cancelled here before kfree(host) below - a still-armed request_timer
 	 * or detect_timer firing after free is a real use-after-free, and
 	 * leaving them armed at all during remove/shutdown is exactly the
@@ -1964,7 +1964,7 @@ static void mmc_ingenic_shutdown(struct platform_device *pdev)
 	 * can't handle bus remove correctly.
 	 */
 	dev_vdbg(host->dev, "shutdown\n");
-	/* OpenKE (2026-07-22, FIRMWARE.md sec 49): done first, unconditionally -
+	/* RosetteOS (2026-07-22, FIRMWARE.md sec 49): done first, unconditionally -
 	 * host->mmc->card is NULL for the entire failure mode this diagnostic
 	 * pass is investigating (SDIO enumeration never completes far enough to
 	 * allocate a card), so the branch below never ran and never cancelled

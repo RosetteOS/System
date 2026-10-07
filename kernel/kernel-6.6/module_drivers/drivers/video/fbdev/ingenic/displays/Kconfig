@@ -120,8 +120,8 @@ config STAGE_ST7701S_RGB666
 	help
 		lcd panel ST7701S spi+rgb (fmt:rgb666) interface, for ingenicfb drivers.
 
-config STAGE_OPENKE_GENERAL_480X272
-	tristate "OpenKE best-effort panel for Ender 3 V3 KE (480x272)"
+config STAGE_ROSETTEOS_GENERAL_480X272
+	tristate "RosetteOS best-effort panel for Ender 3 V3 KE (480x272)"
 	depends on FB_INGENIC_DISPLAYS_STAGE
 	help
 		Best-effort plain RGB TFT panel driver for the real Ender 3 V3 KE

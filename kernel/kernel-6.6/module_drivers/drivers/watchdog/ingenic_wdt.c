@@ -300,7 +300,7 @@ static int ingenic_wdt_probe(struct platform_device *pdev)
 	}
 #endif
 
-	/* OpenKE (2026-07-21, FIRMWARE.md sec 32/33): explicitly stop the counter at probe time,
+	/* RosetteOS (2026-07-21, FIRMWARE.md sec 32/33): explicitly stop the counter at probe time,
 	 * unconditionally. This driver never did this before - it only registers the /dev/watchdog
 	 * device, it never touches the actual hardware enable bit unless userspace opens the
 	 * device (which nothing on our build does) or .start()/.stop() get called. If U-Boot/SPL

@@ -22,7 +22,7 @@
 #include "sdhci.h"
 #include "sdhci-ingenic.h"
 
-/* OpenKE (2026-07-22, FIRMWARE.md sec 46): mmc_power_up()/mmc_power_off() are real,
+/* RosetteOS (2026-07-22, FIRMWARE.md sec 46): mmc_power_up()/mmc_power_off() are real,
  * non-static, built-in (CONFIG_MMC=y) mmc-core functions - just declared in the
  * core subsystem's own *private* drivers/mmc/core/core.h, not the public
  * include/linux/mmc/core.h, so they need a manual extern here rather than an
@@ -152,7 +152,7 @@ static void sdhci_ingenic_set_clock(struct sdhci_host *host, unsigned int clock)
 		clk_set_parent(sdhci_ing->clk_mux, sdhci_ing->clk_mpll);
 	} else {
 		clk_set_parent(sdhci_ing->clk_mux, sdhci_ing->clk_ext);
-		/* OpenKE (2026-07-22, FIRMWARE.md sec 44): real vendor-source copy-paste bug,
+		/* RosetteOS (2026-07-22, FIRMWARE.md sec 44): real vendor-source copy-paste bug,
 		 * not a devicetree issue - this unconditionally hit MSC0's own clock control
 		 * register (0xB0000068 == CPM_MSC0_CLK_R, #define'd above) regardless of which
 		 * controller instance is actually being clocked, even though the correct,
@@ -309,7 +309,7 @@ static inline void ingenic_mmc_clk_onoff(struct sdhci_ingenic *ingenic_ing, unsi
 	}
 }
 
-/* OpenKE (2026-07-22, FIRMWARE.md sec 49): temporary paired-trace
+/* RosetteOS (2026-07-22, FIRMWARE.md sec 49): temporary paired-trace
  * instrumentation for the stock-vs-custom CMD5 comparison. Polls the same
  * raw MSC1 SDHCI register block (via the host's own host->ioaddr, already
  * mapped by probe) and the CPM MSC1 clock-divider register (same physical
@@ -325,14 +325,14 @@ static inline void ingenic_mmc_clk_onoff(struct sdhci_ingenic *ingenic_ing, unsi
  * answered" from "chip never answered" - changes, which is the single
  * signal worth surfacing unconditionally. Full per-register logging needs
  * msc1_trace=1. Blocking is fine here: this runs synchronously from
- * openke_wifi_manual_insert()'s late_initcall context, not from an
+ * rosetteos_wifi_manual_insert()'s late_initcall context, not from an
  * interrupt or atomic path. Not permanent - remove once WiFi works
  * reliably. */
 static bool msc1_trace;
 module_param(msc1_trace, bool, 0644);
 MODULE_PARM_DESC(msc1_trace, "log every MSC1 SDHCI register change during manual insert (default: off, only report the first SDHCI_RESPONSE_0 change)");
 
-/* OpenKE (2026-07-22, FIRMWARE.md sec 50): WL_REG_ON (gpd 4 / PD04) is
+/* RosetteOS (2026-07-22, FIRMWARE.md sec 50): WL_REG_ON (gpd 4 / PD04) is
  * requested exclusively by the mmc-pwrseq-simple platform driver via
  * reset-gpios, so sdhci-ingenic.c can't devm_gpiod_get() it itself without
  * an -EBUSY conflict. gpio_get_value() is the legacy global-number gpiolib
@@ -342,9 +342,9 @@ MODULE_PARM_DESC(msc1_trace, "log every MSC1 SDHCI register change during manual
  * global gpio number, confirmed live via "gpio-100 (|reset ) out lo ACTIVE
  * LOW" in /sys/kernel/debug/gpio on this exact board (gpiochip3 GPIOs
  * 96-127 = GPD, +4 = PD04). */
-#define OPENKE_WL_REG_ON_GPIO 100
+#define ROSETTEOS_WL_REG_ON_GPIO 100
 
-static void openke_msc1_trace(struct sdhci_host *host)
+static void rosetteos_msc1_trace(struct sdhci_host *host)
 {
 	void __iomem *cpm_msc1cdr;
 	u32 prev[25];
@@ -358,24 +358,24 @@ static void openke_msc1_trace(struct sdhci_host *host)
 
 	cpm_msc1cdr = ioremap(0x100000a4, 4);
 	if (!cpm_msc1cdr) {
-		pr_err("openke_msc1_trace: ioremap CPM_MSC1CDR failed\n");
+		pr_err("rosetteos_msc1_trace: ioremap CPM_MSC1CDR failed\n");
 		return;
 	}
 
 	memset(prev, 0, sizeof(prev));
 	t0 = ktime_get();
 	if (msc1_trace) {
-		pr_info("openke_msc1_trace: start\n");
+		pr_info("rosetteos_msc1_trace: start\n");
 	}
 
 	while (ktime_ms_delta(ktime_get(), t0) < 2000) {
 		ms = ktime_ms_delta(ktime_get(), t0);
 		{
-			int gpio_val = gpio_get_value(OPENKE_WL_REG_ON_GPIO);
+			int gpio_val = gpio_get_value(ROSETTEOS_WL_REG_ON_GPIO);
 
 			if (first || gpio_val != prev_gpio) {
-				pr_info("openke_msc1_trace: %6lld ms WL_REG_ON (gpio %d) = %d\n",
-					ms, OPENKE_WL_REG_ON_GPIO, gpio_val);
+				pr_info("rosetteos_msc1_trace: %6lld ms WL_REG_ON (gpio %d) = %d\n",
+					ms, ROSETTEOS_WL_REG_ON_GPIO, gpio_val);
 			}
 			prev_gpio = gpio_val;
 		}
@@ -385,12 +385,12 @@ static void openke_msc1_trace(struct sdhci_host *host)
 			if (i == 4 && !first && v != prev[i] && !response_seen) {
 				/* offset 0x10 = SDHCI_RESPONSE_0 - always report the
 				 * first real response, trace or not. */
-				pr_info("openke_msc1_trace: %6lld ms first SDHCI_RESPONSE_0 change: 0x%08x -> 0x%08x\n",
+				pr_info("rosetteos_msc1_trace: %6lld ms first SDHCI_RESPONSE_0 change: 0x%08x -> 0x%08x\n",
 					ms, prev[i], v);
 				response_seen = true;
 			}
 			if (msc1_trace && (first || v != prev[i])) {
-				pr_info("openke_msc1_trace: %6lld ms MSC1+0x%02x = 0x%08x\n",
+				pr_info("rosetteos_msc1_trace: %6lld ms MSC1+0x%02x = 0x%08x\n",
 					ms, i * 4, v);
 			}
 			prev[i] = v;
@@ -399,7 +399,7 @@ static void openke_msc1_trace(struct sdhci_host *host)
 			u32 cdr = readl(cpm_msc1cdr);
 
 			if (first || cdr != prev_cdr) {
-				pr_info("openke_msc1_trace: %6lld ms CPM_MSC1CDR = 0x%08x\n",
+				pr_info("rosetteos_msc1_trace: %6lld ms CPM_MSC1CDR = 0x%08x\n",
 					ms, cdr);
 			}
 			prev_cdr = cdr;
@@ -408,10 +408,10 @@ static void openke_msc1_trace(struct sdhci_host *host)
 		usleep_range(200, 300);
 	}
 	if (msc1_trace) {
-		pr_info("openke_msc1_trace: done\n");
+		pr_info("rosetteos_msc1_trace: done\n");
 	}
 	if (!response_seen) {
-		pr_info("openke_msc1_trace: no SDHCI_RESPONSE_0 change across the whole window - chip never answered\n");
+		pr_info("rosetteos_msc1_trace: no SDHCI_RESPONSE_0 change across the whole window - chip never answered\n");
 	}
 	iounmap(cpm_msc1cdr);
 }
@@ -424,7 +424,7 @@ static void openke_msc1_trace(struct sdhci_host *host)
  *  This functions will be called by manually card-detect driver such as
  *  wifi. To enable this mode you can set value pdata.removal = MANUAL.
  *
- *  OpenKE (2026-07-22, FIRMWARE.md sec 52): sec 47 briefly renamed this to
+ *  RosetteOS (2026-07-22, FIRMWARE.md sec 52): sec 47 briefly renamed this to
  *  sdhci_ingenic_mmc_manual_detect to dodge a link collision with
  *  ingenic_mmc.c's own function of this name, when msc1 was (wrongly)
  *  switched to that driver. Reverted - disassembling stock's real, live
@@ -459,7 +459,7 @@ int ingenic_mmc_manual_detect(int index, int on)
 	if (on) {
 		dev_err(&sdhci_ing->pdev->dev, "card insert manually\n");
 		set_bit(INGENIC_MMC_CARD_PRESENT, &sdhci_ing->flags);
-		/* OpenKE (2026-07-22, FIRMWARE.md sec 46): mmc_add_host()'s own
+		/* RosetteOS (2026-07-22, FIRMWARE.md sec 46): mmc_add_host()'s own
 		 * mmc_start_host() ALREADY did one automatic mmc_power_up()+rescan for
 		 * every mmc host unconditionally (real, mainline drivers/mmc/core/
 		 * core.c behavior, independent of non-removable/cd_type) - that's the
@@ -476,7 +476,7 @@ int ingenic_mmc_manual_detect(int index, int on)
 		 * fresh transition right here, not stale state from minutes/seconds
 		 * earlier at a completely different point in boot.
 		 *
-		 * OpenKE (2026-07-22, FIRMWARE.md sec 49): a paired stock-vs-custom
+		 * RosetteOS (2026-07-22, FIRMWARE.md sec 49): a paired stock-vs-custom
 		 * register trace proved this power-cycle races the automatic rescan
 		 * the comment above already knows about. On custom, mmc1 registers
 		 * at ~1.33s and mmc_start_host()'s own automatic rescan doesn't
@@ -492,7 +492,7 @@ int ingenic_mmc_manual_detect(int index, int on)
 		 * before we cut power, so our power-cycle can never land mid-command
 		 * against a rescan that's still using the chip. */
 		cancel_delayed_work_sync(&host->mmc->detect);
-		/* OpenKE (2026-07-22, FIRMWARE.md sec 51): WL_REG_ON now driven
+		/* RosetteOS (2026-07-22, FIRMWARE.md sec 51): WL_REG_ON now driven
 		 * directly, bypassing mmc_pwrseq_simple entirely - sec 50 proved
 		 * mmc_power_up()'s pwrseq sequence completes (power_mode really
 		 * transitions 0->2) without ever moving the physical pin, and
@@ -506,15 +506,15 @@ int ingenic_mmc_manual_detect(int index, int on)
 		mmc_power_off(host->mmc);
 		if (sdhci_ing->wlan_reg_on) {
 			gpiod_set_raw_value_cansleep(sdhci_ing->wlan_reg_on, 0);
-			pr_info("openke: WIFI_SEQ: WL_REG_ON requested_raw=0 descriptor_raw=%d\n",
+			pr_info("rosetteos: WIFI_SEQ: WL_REG_ON requested_raw=0 descriptor_raw=%d\n",
 				gpiod_get_raw_value_cansleep(sdhci_ing->wlan_reg_on));
 		}
-		pr_info("openke: WIFI_SEQ: sleeping 100 ms\n");
+		pr_info("rosetteos: WIFI_SEQ: sleeping 100 ms\n");
 		msleep(100);
 		mmc_power_up(host->mmc, host->mmc->ocr_avail);
 		if (sdhci_ing->wlan_reg_on) {
 			gpiod_set_raw_value_cansleep(sdhci_ing->wlan_reg_on, 1);
-			pr_info("openke: WIFI_SEQ: WL_REG_ON requested_raw=1 descriptor_raw=%d\n",
+			pr_info("rosetteos: WIFI_SEQ: WL_REG_ON requested_raw=1 descriptor_raw=%d\n",
 				gpiod_get_raw_value_cansleep(sdhci_ing->wlan_reg_on));
 		}
 #ifdef CLK_CTRL
@@ -522,9 +522,9 @@ int ingenic_mmc_manual_detect(int index, int on)
 #endif
 		host->flags &= ~SDHCI_DEVICE_DEAD;
 		host->quirks |= SDHCI_QUIRK_BROKEN_CARD_DETECTION;
-		pr_info("openke: WIFI_SEQ: triggering manual detection\n");
+		pr_info("rosetteos: WIFI_SEQ: triggering manual detection\n");
 		mmc_detect_change(sdhci_ing->host->mmc, 0);
-		openke_msc1_trace(host);
+		rosetteos_msc1_trace(host);
 	} else {
 		dev_err(&sdhci_ing->pdev->dev, "card remove manually\n");
 		clear_bit(INGENIC_MMC_CARD_PRESENT, &sdhci_ing->flags);
@@ -546,7 +546,7 @@ EXPORT_SYMBOL(ingenic_mmc_manual_detect);
  *  @index: host->index, namely the index of the controller.
  *  @on: 1-enable msc clock gate, 0-disable msc clock gate.
  *
- *  OpenKE (2026-07-22, FIRMWARE.md sec 52): reverted for the same reason as
+ *  RosetteOS (2026-07-22, FIRMWARE.md sec 52): reverted for the same reason as
  *  ingenic_mmc_manual_detect above - msc1 is back on this driver, and
  *  CONFIG_INGENIC_MMC is disabled again, so the sec 47 rename that dodged a
  *  collision with ingenic_mmc.c's own ingenic_mmc_clk_ctrl is no longer
@@ -730,7 +730,7 @@ static int sdhci_ingenic_probe(struct platform_device *pdev)
 	sdhci_ing->pdev = pdev;
 	sdhci_ing->pdata = pdata;
 
-	/* OpenKE (2026-07-22, FIRMWARE.md sec 51): WL_REG_ON driven directly -
+	/* RosetteOS (2026-07-22, FIRMWARE.md sec 51): WL_REG_ON driven directly -
 	 * see ingenic_mmc_manual_detect(). GPIOD_ASIS: this driver only ever
 	 * uses gpiod_set_raw_value_cansleep() on this descriptor, never the
 	 * active-flag-translating gpiod_set_value_cansleep(), so the initial
@@ -748,7 +748,7 @@ static int sdhci_ingenic_probe(struct platform_device *pdev)
 			return dev_err_probe(dev, ret,
 				"failed to configure WLAN_REG_ON output\n");
 		}
-		pr_info("openke: WLAN_REG_ON GPIO acquired, direction_output_raw(0) ret=%d\n", ret);
+		pr_info("rosetteos: WLAN_REG_ON GPIO acquired, direction_output_raw(0) ret=%d\n", ret);
 	}
 
 	host->ioaddr = of_iomap(pdev->dev.of_node, 0);
@@ -837,14 +837,14 @@ static int sdhci_ingenic_probe(struct platform_device *pdev)
 		pm_runtime_get_noresume(&pdev->dev);
 		return ret;
 	}
-	/* OpenKE (2026-07-22, FIRMWARE.md sec 50): temporary diagnostic - the
+	/* RosetteOS (2026-07-22, FIRMWARE.md sec 50): temporary diagnostic - the
 	 * live GPIO trace shows WL_REG_ON never leaves raw LOW no matter what
 	 * reset-gpios says, which is exactly what happens if host->pwrseq
 	 * never actually got attached here (mmc_pwrseq_alloc() silently
 	 * returns 0 with pwrseq left NULL if of_parse_phandle() doesn't find
 	 * "mmc-pwrseq" on this exact node - no error, no log line either way).
 	 * Settle it directly instead of inferring from what's missing. */
-	pr_info("openke: mmc_of_parse ok, host->mmc->parent=%s of_node=%pOF pwrseq=%p\n",
+	pr_info("rosetteos: mmc_of_parse ok, host->mmc->parent=%s of_node=%pOF pwrseq=%p\n",
 		dev_name(host->mmc->parent), host->mmc->parent->of_node, host->mmc->pwrseq);
 
 	sdhci_enable_v4_mode(host);

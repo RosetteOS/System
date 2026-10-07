@@ -244,7 +244,7 @@ config BT_HCIUART_BCM_H5
 	select BT_HCIUART_3WIRE
 	select BT_BCM
 	help
-	  OpenKE addition: enables Broadcom firmware/patch-RAM loading
+	  RosetteOS addition: enables Broadcom firmware/patch-RAM loading
 	  (btbcm_initialize()/btbcm_finalize(), the same calls the existing
 	  H4-only CONFIG_BT_HCIUART_BCM path uses) over the H5 three-wire
 	  transport instead, for boards whose UART has no real hardware
