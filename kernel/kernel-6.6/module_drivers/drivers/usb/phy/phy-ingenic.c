@@ -193,11 +193,22 @@ static void gpio_vbus_work(struct work_struct *work)
 	}
 	usb_phy->vbus = vbus;
 
-	/* Peripheral controllers which manage the pullup themselves won't have
-	 * a pullup GPIO configured here.  If it's configured here, we'll do
-	 * what isp1301_omap::b_peripheral() does and enable the pullup here...
-	 * although that may complicate usb_gadget_{,dis}connect() support.
-	 */
+	/* Dynamic role switching for boards without physical ID pin (e.g. Halley5/Nebula Pad) */
+	if (!usb_phy->id_gpiod) {
+		unsigned int usbrdt;
+		unsigned long flags;
+
+		spin_lock_irqsave(&usb_phy->sw_switch_id_lock, flags);
+		usbrdt = cpm_inl(CPM_USBRDT);
+		usbrdt |= USBRDT_IDDIG_EN;
+		if (vbus) {
+			usbrdt |= USBRDT_IDDIG_REG;
+		} else {
+			usbrdt &= ~USBRDT_IDDIG_REG;
+		}
+		cpm_outl(usbrdt, CPM_USBRDT);
+		spin_unlock_irqrestore(&usb_phy->sw_switch_id_lock, flags);
+	}
 
 	if (vbus) {
 		status = USB_EVENT_VBUS;
@@ -381,10 +392,28 @@ static ssize_t sw_switch_hsotg_store(struct device *dev, struct device_attribute
 	return count;
 }
 
-static DEVICE_ATTR(sw_switch_hsotg, S_IWUSR, NULL, sw_switch_hsotg_store);
+static ssize_t sw_switch_hsotg_show(struct device *dev, struct device_attribute *attr,
+                                    char *buf)
+{
+	unsigned int usbrdt = cpm_inl(CPM_USBRDT);
+	if (!(usbrdt & USBRDT_IDDIG_EN))
+		return sprintf(buf, "none\n");
+	return sprintf(buf, "%s\n", (usbrdt & USBRDT_IDDIG_REG) ? "device" : "host");
+}
+static DEVICE_ATTR(sw_switch_hsotg, S_IWUSR | S_IRUGO, sw_switch_hsotg_show, sw_switch_hsotg_store);
+
+static ssize_t vbus_detect_show(struct device *dev, struct device_attribute *attr,
+                                char *buf)
+{
+	struct usb_phy_data *usb_phy = (struct usb_phy_data *)dev->driver_data;
+	int vbus = usb_phy->vbus_gpiod ? is_vbus_powered(usb_phy) : -1;
+	return sprintf(buf, "%d\n", vbus);
+}
+static DEVICE_ATTR_RO(vbus_detect);
 
 static struct device_attribute *usb_phy_attributes[] = {
 	&dev_attr_sw_switch_hsotg,
+	&dev_attr_vbus_detect,
 	NULL
 };
 
@@ -549,6 +578,22 @@ static int ingenic_usb_phy_probe(struct platform_device *pdev)
 		/* Make sure the id state updates work the first time. */
 		usb_phy->id = -1;
 		gpio_id_irq(usb_phy->id_irq, pdev);
+	} else {
+		/*
+		 * Boards without dedicated ID GPIO (e.g. Halley5 / Creality Nebula Pad):
+		 * Initialize OTG role from micro-USB VBUS detect pin:
+		 * If external 5V VBUS is already supplied by a PC host at boot, enter Device mode;
+		 * otherwise default to Host mode so USB-A ports (hub, webcam, storage) power up.
+		 */
+		unsigned int usbrdt = cpm_inl(CPM_USBRDT);
+		int initial_vbus = usb_phy->vbus_gpiod ? is_vbus_powered(usb_phy) : 0;
+		usbrdt |= USBRDT_IDDIG_EN;
+		if (initial_vbus) {
+			usbrdt |= USBRDT_IDDIG_REG;
+		} else {
+			usbrdt &= ~USBRDT_IDDIG_REG;
+		}
+		cpm_outl(usbrdt, CPM_USBRDT);
 	}
 
 	device_init_wakeup(dev, true);
