@@ -524,7 +524,7 @@ static int ingenic_usb_phy_probe(struct platform_device *pdev)
 		return -ENODEV;
 	}
 
-	usb_phy->drvvbus_gpiod = devm_gpiod_get_optional(dev, "ingenic,drvvbus", GPIOD_OUT_LOW);
+	usb_phy->drvvbus_gpiod = devm_gpiod_get_optional(dev, "ingenic,drvvbus", GPIOD_OUT_HIGH);
 	if (IS_ERR(usb_phy->drvvbus_gpiod)) {
 		err = PTR_ERR(usb_phy->drvvbus_gpiod);
 		dev_err(dev, "can't request vbus draw gpio, err: %d\n", err);
